@@ -31,6 +31,8 @@ jobs:
   build-docker:
     needs: build-artifacts
     runs-on: ubuntu-latest
+    env:
+      Image_name : ${{ secrets.DOCKER_USERNAME }}/spring-boot-app
     steps:
     
     - name: Checkout code
@@ -58,6 +60,7 @@ jobs:
         
     - name: Push Docker image to Docker Hub
       run: |
+        IMAGE_NAME=${{ env.Image_name }}
         docker push $IMAGE_NAME:${{ github.sha }}
         docker push $IMAGE_NAME:latest
 
