@@ -50,15 +50,16 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build Docker image
+    - name: Build and Push Docker image
       run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/spring-boot-app:${{ github.sha }} .
-        docker tag ${{ secrets.DOCKER_USERNAME }}/spring-boot-app:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/spring-boot-app:latest
-
+        IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/spring-boot-app
+        docker build -t $IMAGE_NAME:${{ github.sha }} .
+        docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:latest
+        
     - name: Push Docker image to Docker Hub
       run: |
-        docker push ${{ secrets.DOCKER_USERNAME }}/spring-boot-app:${{ github.sha }}
-        docker push ${{ secrets.DOCKER_USERNAME }}/spring-boot-app:latest
+        docker push $IMAGE_NAME:${{ github.sha }}
+        docker push $IMAGE_NAME:latest
 
   deploy-minikube:
     needs: build-docker
@@ -82,14 +83,30 @@ jobs:
 
     - name: Deploy to Minikube using YAML files
       run: |
-        # Update image in deployment.yaml
-        sed -i "s|<DOCKER_IMAGE>|${{ secrets.DOCKER_USERNAME }}/spring-boot-app:latest|g" deployment.yaml
+        # Define Docker image context
+        IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/spring-boot-app:latest
+
+        # Replace placeholder in deployment.yaml with the Docker image
+        sed -i "s|<DOCKER_IMAGE>|$IMAGE_NAME|g" deployment.yaml
 
         # Apply deployment and service configurations
         kubectl apply -f deployment.yaml
         kubectl apply -f service.yaml
 
-        sleep 60
+        # Wait for the deployment to stabilize
+        echo "Waiting for deployment to stabilize..."
+        kubectl rollout status deployment/spring-boot-app
 
-        # Verify deployment
+    - name: Verify Deployment
+      run: |
+        echo "Verifying Kubernetes resources..."
         kubectl get all
+
+    - name: Validate Deployment
+      if: startsWith(needs.build-docker.outputs.IMAGE_NAME, 'dockernsh058') && endsWith(needs.build-docker.outputs.IMAGE_NAME, ':latest')
+      run: |
+        echo "Docker image name validation passed: ${{ needs.build-docker.outputs.IMAGE_NAME }}"
+
+    - name: Status Check
+      if: ${{ job.status == 'success' }}
+      run: echo "Deployment completed successfully!"
