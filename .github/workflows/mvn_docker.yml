@@ -116,7 +116,7 @@ jobs:
     - name: Validate Deployment
       if: startsWith('${{ env.IMAGE_NAME }}', 'dockernsh058') && endsWith('${{ env.IMAGE_NAME }}', ':latest')
       run: |
-        echo "Docker image name validation passed: ${{ needs.build-docker.outputs.IMAGE_NAME }}"
+        echo "Docker image name validation passed: ${{ env.IMAGE_NAME }}"
 
     - name: Status Check
       if: ${{ job.status == 'success' }}
