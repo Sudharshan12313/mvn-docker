@@ -114,7 +114,7 @@ jobs:
         kubectl get all
 
     - name: Validate Deployment
-      if: startsWith('${{ IMAGE_NAME }}', 'dockernsh058') && endsWith('${{ IMAGE_NAME }}', ':latest')
+      if: startsWith('${{ env.IMAGE_NAME }}', 'dockernsh058') && endsWith('${{ env.IMAGE_NAME }}', ':latest')
       run: |
         echo "Docker image name validation passed: ${{ needs.build-docker.outputs.IMAGE_NAME }}"
 
