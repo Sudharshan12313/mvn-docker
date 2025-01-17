@@ -2,6 +2,13 @@ name: Maven Build, Dockerize, and Deploy to Minikube
 
 on:
   workflow_dispatch:
+    inputs:
+      deployment_type:
+        description: 'Specify the deployment type'
+        required: true
+        default: 'development'
+
+  
 jobs:
   build-artifacts:
     runs-on: ubuntu-latest
@@ -64,6 +71,7 @@ jobs:
   deploy-minikube:
     needs: build-docker
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.deployment_type == 'development' }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
