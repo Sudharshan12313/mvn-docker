@@ -1,9 +1,6 @@
 name: Maven Build, Dockerize, and Deploy to Minikube
 
 on:
-  #push:
-  #  branches:
-  #    - main  # Trigger workflow on push to the 'main' branch
   workflow_dispatch:
 jobs:
   build-artifacts:
@@ -106,7 +103,7 @@ jobs:
         kubectl get all
 
     - name: Validate Deployment
-      if: startsWith(needs.build-docker.outputs.IMAGE_NAME, 'dockernsh058') && endsWith(needs.build-docker.outputs.IMAGE_NAME, ':latest')
+      if: startsWith(needs.build-docker.outputs.IMAGE_NAME, '${{ secrets.DOCKER_USERNAME }}) && endsWith(needs.build-docker.outputs.IMAGE_NAME, ':latest')
       run: |
         echo "Docker image name validation passed: ${{ needs.build-docker.outputs.IMAGE_NAME }}"
 
